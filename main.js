@@ -1,8 +1,12 @@
+import app from "./server/firebase_config";
+import {getAuth, signInAnonymously, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/13.8.0/firebase-auth.js";
+
+/* Helper Functions */
 function percentageBoolean(percentage) {
     /* Takes a percentage as in "theres a {percentage} chance that ..."
     and returns a boolean*/
 
-    random_num = Math.floor(Math.random()*101);
+    const random_num = Math.floor(Math.random()*101);
     if (random_num <= percentage){
         return true;
     }
@@ -23,63 +27,124 @@ function chanceBooster() {
     // Common or Special Guest
     
     if (percentageBoolean(2)){
-        d['special guest'] += 1
+        d['special guest'] += 1;
     }
     else{
-        d['commons'] += 1
+        d['commons'] += 1;
     }
     
     // 2 Random cards of any rarity from the set
 
-    d['any type'] += 2
+    d['any type'] += 2;
 
     // Rare or Mythic card
 
     if (percentageBoolean(13)){
-        d['inset mythic rares'] += 1 
+        d['inset mythic rares'] += 1 ;
     }
     else {
-        d['inset rares'] += 1
+        d['inset rares'] += 1;
     }
 
     return d; // returns dictionary
 }
 
-async function generateBoosterPack(setId = 'ktk'){
-    d_types_to_fetchurl = {'commons': "https://api.scryfall.com/cards/random?q=r:common+set:" + setId, 'uncommons':"https://api.scryfall.com/cards/random?q=r:uncommon+set:" + setId, 'common lands':"https://api.scryfall.com/cards/random?q=r:common+t:land+set:" + setId, 'inset rares':"https://api.scryfall.com/cards/random?q=r:rare+set:" + setId, 'inset mythic rares':"https://api.scryfall.com/cards/random?q=r:mythic+set:" + setId, 'special guest':"https://api.scryfall.com/cards/random?q=set:spg" + setId , 'any type':0}; 
+async function generateBoosterPack(dict, setId = 'eoe'){
+    /* Takes a set id and returns a an array of urls for all 14 images
+    of the booster cards*/
 
-    const dict = chanceBooster()
+    // Issue: 
+    // 1- Special guests are taken arbitrarly from their collector number
+    // 2- Any type card does not come in foil
+    // 3- I'm not supposed to have the same cards between my normal pool, I could have repeated cause of the 'any type' but not otherwise
     
+    const d_types_to_fetchurl = {'commons': "https://api.scryfall.com/cards/random?q=r:common+-t:basic+set:" + setId, 'uncommons':"https://api.scryfall.com/cards/random?q=r:uncommon+set:" + setId, 'common lands':"https://api.scryfall.com/cards/random?q=r:common+t:land+set:" + setId, 'inset rares':"https://api.scryfall.com/cards/random?q=r:rare+set:" + setId, 'inset mythic rares':"https://api.scryfall.com/cards/random?q=r:mythic+set:" + setId, 'special guest':"https://api.scryfall.com/cards/random?q=e:spg+cn≥119+cn≤128", 'any type':"https://api.scryfall.com/cards/random?q=set:" + setId}; 
     
+    let arr_of_fetches = [];
+    
+    // populating array with all fetches 
+    for (const [key, value] of Object.entries(dict)){
+        for(let i =0; i<value;i++){
+            arr_of_fetches.push(fetch(d_types_to_fetchurl[key]));
+        } 
+    }
+    
+    const response_arr = await Promise.all(arr_of_fetches);
+    
+    const data_arr = await Promise.all(response_arr.map((res) => res.json()));
+    
+    //array img urls
+
+    const img_url_arr = data_arr.map((data)=>data.image_uris.normal);
+    
+    return img_url_arr;
+    
+}
+
+function mapImagesToHtml(array_of_images) {
+
+    const container = document.getElementById('image_container');
+    
+    for (let i = 0; i<array_of_images.length; i++){
+        const image = document.createElement('img');
+        image.src = array_of_images[i];
+        container.appendChild(image);
+    }
     
 
 }
-generateBoosterPack()
-
-async function makePile(setId='ktk') {
-    return;
-}
 
 
+(function (){
+    let player_id;
+    let player_ref;
+
+    const auth = getAuth(app);
+    signInAnonymously(auth).catch(error => {
+        const error_code = error.code;
+        const error_message = error.message;
+        console.log(error_message)
+
+    });
+
+    onAuthStateChanged(auth, (user) => {
+        if (user){
+            // user's signed in
+            player_id = user.uid;
+            player_ref = firebase.database().ref(`drafters/${player_id}`)
+
+            player_ref.set({
+                id:player_id,
+            })
 
 
-
-/*function callCommanders(amount=3){
-    for (let i = 0; i<amount; i++){
-    let img_element = document.getElementById("commander#" + i.toString())
-    
-
-    fetch("https://api.scryfall.com/cards/random?q=is:commander")
-    .then(response => response.json())
-    .then(data => {
-         commanderUrl = data.image_uris.large
-        img_element.src = commanderUrl
-
+        }
+        else {
+            // user's signed out
+        }
     })
-    .catch(error => console.error(error))
-    
 
-}
-}
-*/
+}) ()
+
+
+
+
+/* Main code */
+
+
+
+
+
+
+
+// document.getElementById('draft_botn').addEventListener('click', startDraft)
+
+// const d = chanceBooster();
+// const array_imgs = await generateBoosterPack(d);//since generate is async, we need to await cause it returns promise
+// mapImagesToHtml(array_imgs);
+
+
+
+
+
 
