@@ -5,7 +5,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/fireba
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC3D-yi85Lj6c-_d1mTZpijacfW2S5fImw",
   authDomain: "winchester-webapp.firebaseapp.com",
   databaseURL: "https://winchester-webapp-default-rtdb.firebaseio.com",
   projectId: "winchester-webapp",
