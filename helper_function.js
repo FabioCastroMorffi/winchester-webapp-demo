@@ -1,6 +1,3 @@
-import app from "./server/firebase_config";
-import {getAuth, signInAnonymously, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/13.8.0/firebase-auth.js";
-
 /* Helper Functions */
 function percentageBoolean(percentage) {
     /* Takes a percentage as in "theres a {percentage} chance that ..."
@@ -95,41 +92,9 @@ function mapImagesToHtml(array_of_images) {
 }
 
 
-(function (){
-    let player_id;
-    let player_ref;
-
-    const auth = getAuth(app);
-    signInAnonymously(auth).catch(error => {
-        const error_code = error.code;
-        const error_message = error.message;
-        console.log(error_message)
-
-    });
-
-    onAuthStateChanged(auth, (user) => {
-        if (user){
-            // user's signed in
-            player_id = user.uid;
-            player_ref = firebase.database().ref(`drafters/${player_id}`)
-
-            player_ref.set({
-                id:player_id,
-            })
-
-
-        }
-        else {
-            // user's signed out
-        }
-    })
-
-}) ()
-
-
-
-
-/* Main code */
+function main(){
+    
+}
 
 
 
