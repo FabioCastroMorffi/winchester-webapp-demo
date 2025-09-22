@@ -102,11 +102,11 @@ function main(){
 
 
 
-// document.getElementById('draft_botn').addEventListener('click', startDraft)
+//document.getElementById('draft_botn').addEventListener('click', startDraft)
 
-// const d = chanceBooster();
-// const array_imgs = await generateBoosterPack(d);//since generate is async, we need to await cause it returns promise
-// mapImagesToHtml(array_imgs);
+const d = chanceBooster();
+const array_imgs = await generateBoosterPack(d);//since generate is async, we need to await cause it returns promise
+mapImagesToHtml(array_imgs);
 
 
 
